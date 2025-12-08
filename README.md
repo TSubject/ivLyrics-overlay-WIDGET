@@ -1,7 +1,2 @@
-# Tauri + React + Typescript
-
-This template should help get you started developing with Tauri, React and Typescript in Vite.
-
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+의존성 프로그램입니다.
+메인 프로젝트는 https://github.com/ivLis-Studio/lyrics-plus 를 참고하세요
