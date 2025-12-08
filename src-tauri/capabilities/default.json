@@ -21,6 +21,7 @@
     "updater:allow-download-and-install",
     "process:allow-restart",
     "autostart:default",
-    "window-state:default"
+    "window-state:default",
+    "core:tray:default"
   ]
 }
