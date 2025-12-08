@@ -24,14 +24,12 @@ const defaultSettings = {
   originalFontWeight: '700',
   phoneticFontWeight: '500',
   translationFontWeight: '500',
-  trackInfoFontSize: 13,
-  trackInfoFontWeight: '600',
-  trackInfoOpacity: 90,
 
   // Animation
   animationType: 'slide' as 'fade' | 'slide' | 'scale' | 'none',
   animationDuration: 300, // ms
 
+  // Lyrics Styling
   lineBackgroundOpacity: 60,
   textColor: '#ffffff',
   activeColor: '#1db954',
@@ -39,14 +37,29 @@ const defaultSettings = {
   translationColor: '#aaaaaa',
   backgroundColor: '#000000',
   borderRadius: 12,
-  lineGap: 6, // Spacing between lyric lines (Original <-> Phonetic <-> Translation)
+  lineGap: 6,
   textAlign: 'center' as 'left' | 'center' | 'right',
-  isLocked: true, // Default to locked
-  language: 'ko' as 'ko' | 'en', // UI Language
+  isLocked: true,
+  language: 'ko' as 'ko' | 'en',
 
-  // New Styles
+  // Text Effects
   textStroke: false,
+  textStrokeSize: 1,
+  textStrokeMode: 'outer' as 'inner' | 'outer',
   textShadow: 'none' as 'none' | 'soft' | 'hard',
+
+  // Track Info (곡 정보) Styling
+  trackInfoFontSize: 13,
+  trackInfoFontWeight: '600',
+  trackInfoColor: '#ffffff',
+  trackInfoBgColor: '#000000',
+  trackInfoBgOpacity: 60,
+  trackInfoBorderRadius: 12,
+
+  // Font Families
+  originalFontFamily: '',
+  phoneticFontFamily: '',
+  translationFontFamily: '',
 };
 
 // Settings Tab Categories
@@ -93,7 +106,7 @@ const strings = {
     bgColor: "배경 색상",
     reset: "설정 초기화",
     resetConfirm: "정말 초기화하시겠습니까?", // ADDED
-    waiting: "가사 대기 중...",
+    waiting: "연결 대기 중",
     lockTooltip: "잠그기",
     holdToUnlock: "마우스를 2초간 올려두면 잠금해제됩니다",
     checkForUpdates: "업데이트 확인",
@@ -107,20 +120,28 @@ const strings = {
     // New Strings
     textStyleSection: "텍스트 스타일",
     animationSection: "애니메이션",
-    originalStyle: "원문 스타일",
-    phoneticStyle: "발음 스타일",
-    transStyle: "번역 스타일",
+    originalStyle: "원문",
+    phoneticStyle: "발음",
+    transStyle: "번역",
     // Style - Effects
     effectSection: "텍스트 효과",
-    textStroke: "외곽선 (Stroke)",
+    textStroke: "외곽선",
+    strokeSize: "외곽선 두께",
+    strokeMode: "외곽선 방향",
+    strokeInner: "안쪽",
+    strokeOuter: "바깥쪽",
     textShadow: "그림자",
     shadowNone: "없음",
     shadowSoft: "부드럽게",
     shadowHard: "선명하게",
 
-    trackInfoStyle: "트랙 정보 스타일",
+    // 곡 정보 (Song Info) - unified terminology
+    songInfoSection: "곡 정보",
+    songInfoColor: "글자 색",
+    songInfoBgColor: "배경 색",
+    songInfoBg: "배경 투명도",
+    songInfoRadius: "모서리 둥글기",
     size: "크기",
-    opacity: "투명도",
     weight: "굵기",
     animType: "효과",
     animDuration: "속도",
@@ -133,6 +154,11 @@ const strings = {
     cancel: "취소",
     install: "설치",
     close: "닫기",
+    // Font
+    fontFamily: "글꼴",
+    systemDefault: "시스템 기본",
+    // Colors Section
+    lyricsColorSection: "가사 색상",
   },
   en: {
     // Tabs
@@ -170,7 +196,7 @@ const strings = {
     bgColor: "Background",
     reset: "Reset to Defaults",
     resetConfirm: "Are you sure?", // ADDED
-    waiting: "Waiting for lyrics...",
+    waiting: "Connecting",
     lockTooltip: "Lock",
     holdToUnlock: "Hold for 2s to Unlock",
     checkForUpdates: "Check for Updates",
@@ -184,20 +210,28 @@ const strings = {
     // New Strings
     textStyleSection: "TEXT STYLES",
     animationSection: "ANIMATION",
-    originalStyle: "Original Text",
-    phoneticStyle: "Phonetic Text",
+    originalStyle: "Original",
+    phoneticStyle: "Phonetic",
     transStyle: "Translation",
     // Style - Effects
     effectSection: "Text Effects",
     textStroke: "Outline",
+    strokeSize: "Stroke Size",
+    strokeMode: "Stroke Mode",
+    strokeInner: "Inner",
+    strokeOuter: "Outer",
     textShadow: "Shadow",
     shadowNone: "None",
     shadowSoft: "Soft",
     shadowHard: "Hard",
 
-    trackInfoStyle: "Track Info Style",
+    // Song Info - unified terminology
+    songInfoSection: "Song Info",
+    songInfoColor: "Text Color",
+    songInfoBgColor: "Background Color",
+    songInfoBg: "Background Opacity",
+    songInfoRadius: "Corner Radius",
     size: "Size",
-    opacity: "Opacity",
     weight: "Weight",
     animType: "Effect",
     animDuration: "Duration",
@@ -210,6 +244,11 @@ const strings = {
     cancel: "Cancel",
     install: "Install",
     close: "Close",
+    // Font
+    fontFamily: "Font",
+    systemDefault: "System Default",
+    // Colors Section
+    lyricsColorSection: "Lyrics Colors",
   }
 };
 
@@ -495,14 +534,20 @@ function App() {
         '--line-bg': hexToRgba(settings.backgroundColor, settings.lineBackgroundOpacity / 100),
         '--track-info-size': `${settings.trackInfoFontSize}px`,
         '--track-info-weight': settings.trackInfoFontWeight,
-        '--track-info-opacity': settings.trackInfoOpacity / 100,
+        '--track-info-color': settings.trackInfoColor,
+        '--track-info-bg': hexToRgba(settings.trackInfoBgColor, settings.trackInfoBgOpacity / 100),
+        '--track-info-radius': `${settings.trackInfoBorderRadius}px`,
         '--border-radius': `${settings.borderRadius}px`,
         '--padding': `${settings.padding}px`,
         '--line-gap': `${settings.lineGap}px`,
         '--anim-duration': `${settings.animationDuration}ms`,
         '--text-shadow': settings.textShadow === 'soft' ? '0 2px 4px rgba(0,0,0,0.5)' :
           settings.textShadow === 'hard' ? '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' : 'none',
-        '--text-stroke': settings.textStroke ? '1px black' : 'none',
+        '--text-stroke': settings.textStroke ? `${settings.textStrokeSize}px black` : 'none',
+        '--text-stroke-mode': settings.textStrokeMode === 'inner' ? 'fill stroke' : 'stroke fill',
+        '--original-font': settings.originalFontFamily || 'inherit',
+        '--phonetic-font': settings.phoneticFontFamily || 'inherit',
+        '--translation-font': settings.translationFontFamily || 'inherit',
       } as React.CSSProperties}
     >
       <div
@@ -650,12 +695,91 @@ function App() {
             )}
           </div>
         ) : (
-          <div className="lyrics-box waiting">
-            {track ? "🎵" : `🎧 ${t.waiting}`}
-          </div>
+          !track && (
+            <div className="waiting-indicator">
+              <div className="waiting-dot"></div>
+              <span>{t.waiting}</span>
+            </div>
+          )
         )
       }
     </div >
+  );
+}
+
+// Custom Font Picker Component
+function FontPicker({
+  fonts,
+  value,
+  onChange,
+  placeholder
+}: {
+  fonts: string[];
+  value: string;
+  onChange: (font: string) => void;
+  placeholder: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredFonts = useMemo(() => {
+    if (!search) return fonts.slice(0, 100); // Limit for performance
+    return fonts.filter(f => f.toLowerCase().includes(search.toLowerCase())).slice(0, 50);
+  }, [fonts, search]);
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isOpen]);
+
+  return (
+    <div className="font-picker" ref={containerRef}>
+      <button
+        className="font-picker-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ fontFamily: value || 'inherit' }}
+      >
+        <span className="font-picker-value">{value || placeholder}</span>
+        <span className="font-picker-arrow">▾</span>
+      </button>
+      {isOpen && (
+        <div className="font-picker-dropdown">
+          <input
+            type="text"
+            className="font-picker-search"
+            placeholder="Search fonts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+          />
+          <div className="font-picker-list">
+            <div
+              className={`font-picker-item ${!value ? 'selected' : ''}`}
+              onClick={() => { onChange(''); setIsOpen(false); setSearch(''); }}
+            >
+              {placeholder}
+            </div>
+            {filteredFonts.map(font => (
+              <div
+                key={font}
+                className={`font-picker-item ${value === font ? 'selected' : ''}`}
+                style={{ fontFamily: font }}
+                onClick={() => { onChange(font); setIsOpen(false); setSearch(''); }}
+              >
+                {font}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -672,9 +796,14 @@ function SettingsPanel({
   const t = strings[settings.language || 'ko'];
   const [autoStart, setAutoStart] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const [systemFonts, setSystemFonts] = useState<string[]>([]);
 
   useEffect(() => {
     isEnabled().then(setAutoStart).catch(e => console.error("Failed to check autostart:", e));
+    // Load system fonts
+    invoke<string[]>('get_system_fonts')
+      .then(fonts => setSystemFonts(fonts))
+      .catch(e => console.error("Failed to load fonts:", e));
   }, []);
 
   const toggleAutoStart = async (checked: boolean) => {
@@ -851,6 +980,15 @@ function SettingsPanel({
                       <option value="300">Light</option><option value="400">Regular</option><option value="700">Bold</option><option value="900">Heavy</option>
                     </select>
                   </div>
+                  <div className="item-row" style={{ marginTop: 8 }}>
+                    <span>{t.fontFamily}</span>
+                  </div>
+                  <FontPicker
+                    fonts={systemFonts}
+                    value={settings.originalFontFamily}
+                    onChange={(f) => updateSetting('originalFontFamily', f)}
+                    placeholder={t.systemDefault}
+                  />
                 </div>
                 {/* Phonetic */}
                 <div className="ios-item column">
@@ -864,6 +1002,15 @@ function SettingsPanel({
                       <option value="300">Light</option><option value="400">Regular</option><option value="500">Medium</option><option value="700">Bold</option>
                     </select>
                   </div>
+                  <div className="item-row" style={{ marginTop: 8 }}>
+                    <span>{t.fontFamily}</span>
+                  </div>
+                  <FontPicker
+                    fonts={systemFonts}
+                    value={settings.phoneticFontFamily}
+                    onChange={(f) => updateSetting('phoneticFontFamily', f)}
+                    placeholder={t.systemDefault}
+                  />
                 </div>
                 {/* Translation */}
                 <div className="ios-item column">
@@ -877,11 +1024,20 @@ function SettingsPanel({
                       <option value="300">Light</option><option value="400">Regular</option><option value="500">Medium</option><option value="700">Bold</option>
                     </select>
                   </div>
+                  <div className="item-row" style={{ marginTop: 8 }}>
+                    <span>{t.fontFamily}</span>
+                  </div>
+                  <FontPicker
+                    fonts={systemFonts}
+                    value={settings.translationFontFamily}
+                    onChange={(f) => updateSetting('translationFontFamily', f)}
+                    placeholder={t.systemDefault}
+                  />
                 </div>
-                {/* Track Info */}
+                {/* Song Info (곡 정보) */}
                 <div className="ios-item column">
                   <div className="item-row">
-                    <span>{t.trackInfoStyle}</span>
+                    <span>{t.songInfoSection}</span>
                     <span className="value-text">{settings.trackInfoFontSize}px</span>
                   </div>
                   <div className="slider-group">
@@ -904,6 +1060,24 @@ function SettingsPanel({
                     <span className="toggle-slider"></span>
                   </div>
                 </label>
+                {settings.textStroke && (
+                  <>
+                    <div className="ios-item column">
+                      <div className="item-row">
+                        <span>{t.strokeSize}</span>
+                        <span className="value-text">{settings.textStrokeSize}px</span>
+                      </div>
+                      <input type="range" min="1" max="5" value={settings.textStrokeSize} onChange={(e) => updateSetting('textStrokeSize', parseInt(e.target.value))} />
+                    </div>
+                    <div className="ios-item column">
+                      <div className="item-row"><span>{t.strokeMode}</span></div>
+                      <div className="ios-segmented-control">
+                        <button className={settings.textStrokeMode === 'outer' ? 'active' : ''} onClick={() => updateSetting('textStrokeMode', 'outer')}>{t.strokeOuter}</button>
+                        <button className={settings.textStrokeMode === 'inner' ? 'active' : ''} onClick={() => updateSetting('textStrokeMode', 'inner')}>{t.strokeInner}</button>
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div className="ios-item column">
                   <div className="item-row"><span>{t.textShadow}</span></div>
                   <div className="ios-segmented-control">
@@ -911,6 +1085,41 @@ function SettingsPanel({
                     <button className={settings.textShadow === 'soft' ? 'active' : ''} onClick={() => updateSetting('textShadow', 'soft')}>{t.shadowSoft}</button>
                     <button className={settings.textShadow === 'hard' ? 'active' : ''} onClick={() => updateSetting('textShadow', 'hard')}>{t.shadowHard}</button>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Song Info Styling */}
+            <section className="ios-section">
+              <div className="section-header">{t.songInfoSection}</div>
+              <div className="ios-list">
+                <div className="ios-item">
+                  <span>{t.songInfoColor}</span>
+                  <div className="color-wrapper">
+                    <input type="color" value={settings.trackInfoColor} onChange={(e) => updateSetting('trackInfoColor', e.target.value)} />
+                    <div className="color-preview" style={{ background: settings.trackInfoColor }}></div>
+                  </div>
+                </div>
+                <div className="ios-item">
+                  <span>{t.songInfoBgColor}</span>
+                  <div className="color-wrapper">
+                    <input type="color" value={settings.trackInfoBgColor} onChange={(e) => updateSetting('trackInfoBgColor', e.target.value)} />
+                    <div className="color-preview" style={{ background: settings.trackInfoBgColor }}></div>
+                  </div>
+                </div>
+                <div className="ios-item column">
+                  <div className="item-row">
+                    <span>{t.songInfoBg}</span>
+                    <span className="value-text">{settings.trackInfoBgOpacity}%</span>
+                  </div>
+                  <input type="range" min="0" max="100" value={settings.trackInfoBgOpacity} onChange={(e) => updateSetting('trackInfoBgOpacity', parseInt(e.target.value))} />
+                </div>
+                <div className="ios-item column">
+                  <div className="item-row">
+                    <span>{t.songInfoRadius}</span>
+                    <span className="value-text">{settings.trackInfoBorderRadius}px</span>
+                  </div>
+                  <input type="range" min="0" max="30" value={settings.trackInfoBorderRadius} onChange={(e) => updateSetting('trackInfoBorderRadius', parseInt(e.target.value))} />
                 </div>
               </div>
             </section>

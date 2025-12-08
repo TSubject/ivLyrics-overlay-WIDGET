@@ -170,10 +170,26 @@ async fn open_settings_window(app: AppHandle) -> Result<(), String> {
         .inner_size(400.0, 600.0)
         .resizable(true)
         .decorations(true)
+        .always_on_top(true)
         .build()
         .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+// Tauri command to get system fonts
+#[tauri::command]
+fn get_system_fonts() -> Result<Vec<String>, String> {
+    use font_kit::source::SystemSource;
+    
+    let source = SystemSource::new();
+    let families = source.all_families().map_err(|e| e.to_string())?;
+    
+    let mut fonts: Vec<String> = families.into_iter().collect();
+    fonts.sort();
+    fonts.dedup();
+    
+    Ok(fonts)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -189,6 +205,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build()) // Updater Init
         .plugin(tauri_plugin_window_state::Builder::default().build()) // Window State Persistence
         .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
+        .plugin(tauri_plugin_deep_link::init()) // Deep Link / URL Scheme
         .manage(lock_state.clone()) // Manage properly in Tauri state
         .setup(move |app| {
             // Setup Tray Icon
@@ -225,7 +242,8 @@ pub fn run() {
                                 )
                                 .title("Settings")
                                 .inner_size(400.0, 600.0)
-                                .resizable(false)
+                                .resizable(true)
+                                .always_on_top(true)
                                 .build();
                             }
                         },
@@ -321,7 +339,8 @@ pub fn run() {
             start_drag,
             open_settings_window,
             set_ignore_cursor_events,
-            set_lock_state
+            set_lock_state,
+            get_system_fonts
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

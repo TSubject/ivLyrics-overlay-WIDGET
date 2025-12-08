@@ -25,15 +25,6 @@
         "resizable": true,
         "visible": true,
         "shadow": false
-      },
-      {
-        "label": "settings",
-        "title": "Settings",
-        "width": 400,
-        "height": 600,
-        "visible": false,
-        "resizable": true,
-        "decorations": true
       }
     ],
     "security": {
@@ -47,6 +38,13 @@
       "endpoints": [
         "https://github.com/ivLis-Studio/lyrics-plus-overlay/releases/latest/download/latest.json"
       ]
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "lyrics-plus"
+        ]
+      }
     }
   },
   "bundle": {

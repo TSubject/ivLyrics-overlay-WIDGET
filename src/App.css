@@ -156,36 +156,38 @@ body,
     /* color: #ffd700; */
 }
 
-/* Track Info Line - Compact inline style */
+/* Track Info Line - Flexible width based on container */
 .track-info-line {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--line-bg, rgba(0, 0, 0, 0.6));
+    background: var(--track-info-bg, rgba(0, 0, 0, 0.6));
     padding: 6px 12px;
-    border-radius: var(--border-radius, 12px);
+    border-radius: var(--track-info-radius, 12px);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: calc(100% - 24px);
+    flex-shrink: 1;
 }
 
 .album-art {
     width: 24px;
     height: 24px;
+    min-width: 24px;
     border-radius: 4px;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .track-text {
     font-size: var(--track-info-size, 13px);
     font-weight: var(--track-info-weight, 600);
-    color: rgba(255, 255, 255, var(--track-info-opacity, 0.9));
+    color: var(--track-info-color, rgba(255, 255, 255, 0.9));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 350px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    /* Always keep subtle shadow for readability */
+    flex: 1;
+    min-width: 0;
 }
 
 /* Lyrics Box */
@@ -211,24 +213,46 @@ body,
     align-items: flex-end;
 }
 
-.lyrics-box.waiting {
-    background: var(--line-bg, rgba(0, 0, 0, 0.6));
-    padding: var(--padding, 12px) 20px;
-    border-radius: var(--border-radius, 12px);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+/* Minimal Waiting Indicator */
+.waiting-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+
+.waiting-indicator span {
+    font-size: 13px;
     font-weight: 500;
-    pointer-events: auto;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    max-width: 90vw;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-    line-height: 1.4;
-    /* [Padding] Ensure consistent height */
-    pointer-events: auto;
-    /* Lines are interactive */
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.3px;
+}
+
+.waiting-dot {
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(0.9);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
 @keyframes fadeIn {
@@ -291,6 +315,8 @@ body,
     line-height: 1.2;
     text-shadow: var(--text-shadow, none);
     -webkit-text-stroke: var(--text-stroke, none);
+    paint-order: var(--text-stroke-mode, stroke fill);
+    font-family: var(--original-font, inherit);
 }
 
 /* Phonetic text - smaller, muted */
@@ -304,9 +330,11 @@ body,
     backdrop-filter: blur(4px);
     text-shadow: var(--text-shadow, none);
     -webkit-text-stroke: var(--text-stroke, none);
+    paint-order: var(--text-stroke-mode, stroke fill);
     width: fit-content;
     margin: 2px 0;
     line-height: 1.3;
+    font-family: var(--phonetic-font, inherit);
 }
 
 /* Translation text - smaller, muted */
@@ -320,9 +348,11 @@ body,
     backdrop-filter: blur(4px);
     text-shadow: var(--text-shadow, none);
     -webkit-text-stroke: var(--text-stroke, none);
+    paint-order: var(--text-stroke-mode, stroke fill);
     width: fit-content;
     margin: 2px 0;
     line-height: 1.3;
+    font-family: var(--translation-font, inherit);
 }
 
 
@@ -334,55 +364,71 @@ body,
 }
 
 /* ============================================
-   iOS Style Settings Panel
+   Modern Settings Panel - Apple/Toss/Fluent
    ============================================ */
 .settings-panel.ios-style {
-    background: #000000;
-    /* Deep black for OLED feel */
+    background: linear-gradient(180deg, #18181b 0%, #09090b 100%);
     min-height: 100vh;
     color: #fff;
-    padding-bottom: 40px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     pointer-events: auto;
-    /* Settings panel must be interactive */
     overflow-y: auto;
-    /* Allow scrolling */
+    overflow-x: hidden;
+}
+
+/* Scrollbar */
+.settings-panel.ios-style::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-panel.ios-style::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
 }
 
 .settings-header {
-    padding: 20px 20px 10px;
+    padding: 24px 24px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* border-bottom: 1px solid rgba(255,255,255,0.1); */
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, rgba(24, 24, 27, 0.96) 0%, rgba(24, 24, 27, 0.85) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .settings-header h2 {
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: #fafafa;
 }
 
 .lang-toggle-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .lang-toggle-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.14);
 }
 
 .settings-content {
-    padding: 20px;
+    padding: 12px 20px 40px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 }
 
 .ios-section {
@@ -392,18 +438,17 @@ body,
 }
 
 .section-header {
-    padding-left: 12px;
-    font-size: 13px;
+    padding: 0 4px 4px;
+    font-size: 11px;
     font-weight: 600;
-    color: #8e8e93;
-    /* iOS Gray */
+    color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
-    letter-spacing: -0.2px;
+    letter-spacing: 0.6px;
 }
 
 .ios-list {
-    background: #1c1c1e;
-    /* iOS Dark Secondary */
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     overflow: hidden;
 }
@@ -412,12 +457,13 @@ body,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    min-height: 44px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 16px;
+    padding: 14px 16px;
+    min-height: 48px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    font-size: 14px;
+    font-weight: 450;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.15s;
 }
 
 .ios-item:last-child {
@@ -425,14 +471,14 @@ body,
 }
 
 .ios-item:hover {
-    background: #2c2c2e;
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .ios-item.column {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    padding: 16px;
+    padding: 14px 16px;
 }
 
 .item-row {
@@ -442,15 +488,20 @@ body,
 }
 
 .value-text {
-    color: #8e8e93;
-    font-size: 15px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 13px;
+    font-weight: 500;
 }
 
-/* iOS Toggle Switch */
+/* ============================================
+   Modern Settings UI - Apple/Toss/Fluent Hybrid
+   ============================================ */
+
+/* Toggle Switch - Refined */
 .toggle-wrapper {
     position: relative;
-    width: 51px;
-    height: 31px;
+    width: 48px;
+    height: 28px;
 }
 
 .toggle-wrapper input {
@@ -466,81 +517,98 @@ body,
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #39393d;
-    transition: .3s;
-    border-radius: 31px;
+    background: rgba(120, 120, 128, 0.32);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 14px;
 }
 
 .toggle-slider:before {
     position: absolute;
     content: "";
-    height: 27px;
-    width: 27px;
+    height: 24px;
+    width: 24px;
     left: 2px;
     bottom: 2px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 input:checked+.toggle-slider {
-    background-color: #30d158;
-    /* iOS Green */
+    background: linear-gradient(135deg, #0078d4 0%, #0063b1 100%);
 }
 
 input:checked+.toggle-slider:before {
     transform: translateX(20px);
 }
 
-/* iOS Segmented Control */
+/* Segmented Control - Fluent Style */
 .ios-segmented-control {
-    background: #1c1c1e;
-    padding: 2px;
-    border-radius: 9px;
+    background: rgba(120, 120, 128, 0.12);
+    padding: 3px;
+    border-radius: 10px;
     display: flex;
-    height: 32px;
+    gap: 2px;
 }
 
 .ios-segmented-control button {
     flex: 1;
     border: none;
     background: transparent;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 13px;
     font-weight: 500;
-    border-radius: 7px;
+    padding: 8px 12px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ios-segmented-control button:hover {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .ios-segmented-control button.active {
-    background: #636366;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Sliders */
+/* Sliders - Modern Accent */
 input[type="range"] {
     -webkit-appearance: none;
     width: 100%;
-    height: 4px;
-    border-radius: 2px;
-    background: #3a3a3c;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(120, 120, 128, 0.24);
     outline: none;
+    transition: background 0.2s;
 }
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%);
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 
-/* Colors */
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+}
+
+/* Color Picker */
 .color-wrapper {
     position: relative;
     display: flex;
@@ -556,54 +624,201 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .color-preview {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 
-/* Destructive Button */
-.ios-button.destructive {
-    background: #1c1c1e;
-    color: #ff453a;
-    /* iOS Red */
+.color-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons */
+.ios-button {
     border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 16px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     width: 100%;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.ios-button.destructive {
+    background: rgba(255, 69, 58, 0.12);
+    color: #ff453a;
+}
 
-/* Slider Group for Granular Settings */
+.ios-button.destructive:hover {
+    background: rgba(255, 69, 58, 0.2);
+}
+
+.ios-button.destructive:active {
+    transform: scale(0.98);
+}
+
+/* Slider Group */
 .slider-group {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.slider-group input {
+.slider-group input[type="range"] {
     flex: 1;
 }
 
-/* iOS Select */
+/* Select Dropdown - Fluent Style */
 .ios-select {
-    background: #3a3a3c;
+    background: rgba(120, 120, 128, 0.16);
     color: white;
-    border: none;
-    padding: 4px 12px;
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 6px 12px;
+    border-radius: 8px;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     outline: none;
-    height: 28px;
+    height: 32px;
+    transition: all 0.2s;
 }
 
-.ios-button.destructive:active {
+.ios-select:hover {
+    background: rgba(120, 120, 128, 0.24);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ios-select:focus {
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+/* ============================================
+   Custom Font Picker
+   ============================================ */
+.font-picker {
+    position: relative;
+    width: 100%;
+}
+
+.font-picker-trigger {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s;
+}
+
+.font-picker-trigger:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.font-picker-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.font-picker-arrow {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.font-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #1e1e20;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    animation: dropdownSlide 0.2s ease;
+    overflow: hidden;
+}
+
+@keyframes dropdownSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.font-picker-search {
+    width: 100%;
+    padding: 12px 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+}
+
+.font-picker-search::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.font-picker-list {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+.font-picker-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.font-picker-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+}
+
+.font-picker-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.font-picker-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.font-picker-item.selected {
+    background: rgba(0, 120, 212, 0.2);
+    color: #60a5fa;
+}
+
+.ios-button:active {
     background: #2c2c2e;
 }
 
