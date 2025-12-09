@@ -456,8 +456,12 @@ function App() {
 
     // Initial setup: Sync lock state with backend
     if (!isSettingsWindow) {
-      // Default is locked
+      // Default is locked - set both lock state and ignore cursor events
       invoke("set_lock_state", { locked: settings.isLocked }).catch(
+        console.error
+      );
+      // IMPORTANT: Also set ignore cursor events on startup based on lock state
+      invoke("set_ignore_cursor_events", { ignore: settings.isLocked }).catch(
         console.error
       );
     }
@@ -476,12 +480,12 @@ function App() {
       invoke("set_lock_state", { locked: settings.isLocked }).catch(
         console.error
       );
-      // Also set ignore events manually based on lock state to allow dragging in unlocked mode immediately
-      if (!settings.isLocked) {
-        invoke("set_ignore_cursor_events", { ignore: false }).catch(
-          console.error
-        );
-      }
+      // IMPORTANT: Always set ignore cursor events based on lock state
+      // When locked (true): ignore cursor events (click through)
+      // When unlocked (false): don't ignore cursor events (catch clicks for dragging)
+      invoke("set_ignore_cursor_events", { ignore: settings.isLocked }).catch(
+        console.error
+      );
     }
   }, [settings.isLocked, isSettingsWindow]);
 
