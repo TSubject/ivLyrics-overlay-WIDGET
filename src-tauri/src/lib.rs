@@ -284,7 +284,8 @@ pub fn run() {
             let settings_i = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let reset_pos_i = MenuItem::with_id(app, "reset_pos", "Reset Position", true, None::<&str>)?;
             let toggle_lock_i = MenuItem::with_id(app, "toggle_lock", "Lock/Unlock Toggle", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&toggle_lock_i, &settings_i, &reset_pos_i, &quit_i])?;
+            let devpanel_i = MenuItem::with_id(app, "devpanel", "Toggle DevTools", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&toggle_lock_i, &settings_i, &reset_pos_i, &devpanel_i, &quit_i])?;
 
             // Get tray icon - use default_window_icon with proper error handling
             let tray_icon = app.default_window_icon()
@@ -339,6 +340,11 @@ pub fn run() {
                              
                              // Emit event to frontend to update UI
                              let _ = app.emit("lock-state-update", new_locked);
+                        },
+                        "devpanel" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                window.open_devtools();
+                            }
                         }
                         _ => {}
                     }
