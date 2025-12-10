@@ -300,7 +300,7 @@ pub fn run() {
                 });
 
 
-            let _tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(tray_icon)
                 .menu(&menu)
                 .show_menu_on_left_click(true)
@@ -342,8 +342,11 @@ pub fn run() {
                              let _ = app.emit("lock-state-update", new_locked);
                         },
                         "devpanel" => {
-                            if let Some(window) = app.get_webview_window("main") {
-                                window.open_devtools();
+                            #[cfg(debug_assertions)]
+                            {
+                                if let Some(window) = app.get_webview_window("main") {
+                                    let _ = window.eval("window.__TAURI_INTERNALS__?.invoke('plugin:devtools|open') || console.log('DevTools not available')");
+                                }
                             }
                         }
                         _ => {}
