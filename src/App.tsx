@@ -6,6 +6,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import "./App.css";
 import type { TrackInfo, LyricLine, LyricsEvent, ProgressEvent } from "./types";
+import SettingsPanelNew from "./SettingsPanel";
 
 // Default settings
 const defaultSettings = {
@@ -89,8 +90,15 @@ const defaultSettings = {
   autoLockDelay: 3.0, // 자동 잠금 지연 시간 (초)
 
   // Album Art Customization
+  showAlbumArt: true, // 앨범아트 표시 여부
   albumArtSize: 36, // px
   albumArtBorderRadius: 8, // px
+
+  // Multiple Lyrics Lines
+  lyricsPrevLines: 0, // 현재 줄 이전 표시할 줄 수 (0-5)
+  lyricsNextLines: 0, // 현재 줄 이후 표시할 줄 수 (0-5)
+  lyricsSetGap: 12, // 가사 세트 간 간격 (px)
+  fadeNonActiveLyrics: true, // 현재 줄 외 가사 연하게 표시
 
   // Layout Customization
   overlayMaxWidth: 500, // px (0 = no limit)
@@ -227,8 +235,15 @@ const strings = {
     autoLockDelay: "자동 잠금 지연",
     // Album Art
     albumArtSection: "앨범아트",
+    showAlbumArt: "앨범아트 표시",
     albumArtSize: "크기",
     albumArtBorderRadius: "모서리 둥글기",
+    // Multiple Lyrics Lines
+    lyricsLinesSection: "가사 표시",
+    lyricsPrevLines: "이전 줄 수",
+    lyricsNextLines: "이후 줄 수",
+    lyricsSetGap: "세트 간격",
+    fadeNonActiveLyrics: "비활성 가사 연하게",
     // Layout
     overlayMaxWidth: "최대 너비",
     sectionGap: "섹션 간격",
@@ -355,8 +370,15 @@ const strings = {
     autoLockDelay: "Auto Lock Delay",
     // Album Art
     albumArtSection: "Album Art",
+    showAlbumArt: "Show Album Art",
     albumArtSize: "Size",
     albumArtBorderRadius: "Corner Radius",
+    // Multiple Lyrics Lines
+    lyricsLinesSection: "Lyrics Display",
+    lyricsPrevLines: "Previous Lines",
+    lyricsNextLines: "Next Lines",
+    lyricsSetGap: "Set Gap",
+    fadeNonActiveLyrics: "Fade Non-Active Lyrics",
     // Layout
     overlayMaxWidth: "Max Width",
     sectionGap: "Section Gap",
@@ -382,9 +404,13 @@ function App() {
   } | null>(null);
   const [settings, setSettings] = useState<OverlaySettings>(() => {
     const saved = localStorage.getItem("overlay-settings-v3");
-    return saved
-      ? { ...defaultSettings, ...JSON.parse(saved) }
-      : defaultSettings;
+    if (saved) {
+      return { ...defaultSettings, ...JSON.parse(saved) };
+    }
+    // 저장된 설정이 없으면 시스템 언어 감지
+    const systemLang = navigator.language || navigator.languages?.[0] || "en";
+    const detectedLang = systemLang.startsWith("ko") ? "ko" : "en";
+    return { ...defaultSettings, language: detectedLang as "ko" | "en" };
   });
 
   const t = strings[settings.language || "ko"];
@@ -649,7 +675,7 @@ function App() {
   if (isSettingsWindow) {
     return (
       <>
-        <SettingsPanel
+        <SettingsPanelNew
           settings={settings}
           onSettingsChange={setSettings}
           onCheckUpdates={() => checkForAppUpdates(true)}
@@ -740,8 +766,8 @@ function App() {
     settings.textAlign === "left"
       ? "align-left"
       : settings.textAlign === "right"
-      ? "align-right"
-      : "align-center";
+        ? "align-right"
+        : "align-center";
 
   // Listen for unlock progress from backend
   useEffect(() => {
@@ -762,8 +788,8 @@ function App() {
   const calculatedOpacity = shouldHide
     ? 0
     : isHovering && settings.isLocked
-    ? 0.2
-    : 1;
+      ? 0.2
+      : 1;
 
   // Determine if we should show next track info instead of current track
   const showNextTrackInfo =
@@ -775,9 +801,8 @@ function App() {
   return (
     <div
       ref={containerRef}
-      className={`overlay-container ${
-        !isPlaying ? "paused" : ""
-      } ${alignClass} ${settings.isLocked ? "locked" : "unlocked"}`}
+      className={`overlay-container ${!isPlaying ? "paused" : ""
+        } ${alignClass} ${settings.isLocked ? "locked" : "unlocked"}`}
       onMouseDown={handleMouseDown}
       style={
         {
@@ -786,9 +811,9 @@ function App() {
           background:
             settings.backgroundMode === "solid"
               ? hexToRgba(
-                  settings.solidBackgroundColor,
-                  settings.solidBackgroundOpacity / 100
-                )
+                settings.solidBackgroundColor,
+                settings.solidBackgroundOpacity / 100
+              )
               : "transparent",
           "--original-size": `${settings.originalFontSize}px`,
           "--phonetic-size": `${settings.phoneticFontSize}px`,
@@ -820,8 +845,8 @@ function App() {
             settings.textShadow === "soft"
               ? "0 2px 4px rgba(0,0,0,0.5)"
               : settings.textShadow === "hard"
-              ? "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000"
-              : "none",
+                ? "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000"
+                : "none",
           "--text-stroke": settings.textStroke
             ? `${settings.textStrokeSize}px black`
             : "none",
@@ -884,9 +909,8 @@ function App() {
                 strokeWidth="6"
                 fill="transparent"
                 strokeDasharray={`${2 * Math.PI * 26}`}
-                strokeDashoffset={`${
-                  2 * Math.PI * 26 * (1 - unlockProgress / 100)
-                }`}
+                strokeDashoffset={`${2 * Math.PI * 26 * (1 - unlockProgress / 100)
+                  }`}
                 strokeLinecap="round"
                 style={{
                   transition: "stroke-dashoffset 0.1s linear",
@@ -949,7 +973,7 @@ function App() {
             >
               {showNextTrackInfo && nextTrack ? (
                 <>
-                  {nextTrack.albumArt && (
+                  {settings.showAlbumArt && nextTrack.albumArt && (
                     <img
                       src={nextTrack.albumArt}
                       alt=""
@@ -988,7 +1012,7 @@ function App() {
                 </>
               ) : track ? (
                 <>
-                  {track.albumArt && (
+                  {settings.showAlbumArt && track.albumArt && (
                     <img
                       src={track.albumArt}
                       alt=""
@@ -1010,48 +1034,107 @@ function App() {
         };
 
         const renderLyricsBox = () => {
-          if (!display) return null;
+          if (activeLineIndex < 0 || lyrics.length === 0) return null;
 
-          // Render lyrics elements in order
-          const lyricsContent = lyricsElements
-            .map((element) => {
-              switch (element) {
-                case "original":
-                  if (!settings.showOriginal || !display.main) return null;
-                  return (
-                    <div key="original" className="lyric-line original">
-                      {display.main}
-                    </div>
-                  );
-                case "phonetic":
-                  if (!settings.showPhonetic || !display.phonetic) return null;
-                  return (
-                    <div key="phonetic" className="lyric-line phonetic">
-                      {display.phonetic}
-                    </div>
-                  );
-                case "translation":
-                  if (!settings.showTranslation || !display.translation)
+          // 표시할 가사 줄 인덱스 계산 (이전 N개, 현재 1개, 이후 N개)
+          const prevLines = Math.max(0, Math.min(5, settings.lyricsPrevLines));
+          const nextLines = Math.max(0, Math.min(5, settings.lyricsNextLines));
+          const linesToShow: { line: LyricLine; index: number; isActive: boolean }[] = [];
+
+          // 시작 인덱스 (현재 - 이전 줄 수)
+          const startIdx = Math.max(0, activeLineIndex - prevLines);
+          // 종료 인덱스 (현재 + 이후 줄 수)
+          const endIdx = Math.min(lyrics.length - 1, activeLineIndex + nextLines);
+
+          for (let i = startIdx; i <= endIdx; i++) {
+            linesToShow.push({
+              line: lyrics[i],
+              index: i,
+              isActive: i === activeLineIndex
+            });
+          }
+
+          // 각 줄에 대해 렌더링 (세트 단위로 wrapper)
+          const renderLyricSet = (lineInfo: { line: LyricLine; index: number; isActive: boolean }, setIndex: number, totalSets: number) => {
+            const displayData = getDisplayText(lineInfo.line);
+            const fadeOpacity = lineInfo.isActive || !settings.fadeNonActiveLyrics ? 1 : 0.5;
+            const isLastSet = setIndex === totalSets - 1;
+
+            // Render lyrics elements in order for this line
+            const elements = lyricsElements
+              .map((element) => {
+                switch (element) {
+                  case "original":
+                    if (!settings.showOriginal || !displayData.main) return null;
+                    return (
+                      <div
+                        key={`original-${lineInfo.index}`}
+                        className={`lyric-line original ${lineInfo.isActive ? 'active' : 'inactive'}`}
+                        style={{ opacity: fadeOpacity }}
+                      >
+                        {displayData.main}
+                      </div>
+                    );
+                  case "phonetic":
+                    if (!settings.showPhonetic || !displayData.phonetic) return null;
+                    return (
+                      <div
+                        key={`phonetic-${lineInfo.index}`}
+                        className={`lyric-line phonetic ${lineInfo.isActive ? 'active' : 'inactive'}`}
+                        style={{ opacity: fadeOpacity }}
+                      >
+                        {displayData.phonetic}
+                      </div>
+                    );
+                  case "translation":
+                    if (!settings.showTranslation || !displayData.translation) return null;
+                    return (
+                      <div
+                        key={`translation-${lineInfo.index}`}
+                        className={`lyric-line translation ${lineInfo.isActive ? 'active' : 'inactive'}`}
+                        style={{ opacity: fadeOpacity }}
+                      >
+                        {displayData.translation}
+                      </div>
+                    );
+                  default:
                     return null;
-                  return (
-                    <div key="translation" className="lyric-line translation">
-                      {display.translation}
-                    </div>
-                  );
-                default:
-                  return null;
-              }
-            })
+                }
+              })
+              .filter(Boolean);
+
+            if (elements.length === 0) return null;
+
+            // 세트를 wrapper로 감싸서 간격 적용
+            return (
+              <div
+                key={`set-${lineInfo.index}`}
+                className="lyrics-set"
+                style={{
+                  marginBottom: isLastSet ? 0 : `${settings.lyricsSetGap}px`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'inherit',
+                  gap: `${settings.lineGap}px`
+                }}
+              >
+                {elements}
+              </div>
+            );
+          };
+
+          const allLyricsSets = linesToShow
+            .map((lineInfo, idx) => renderLyricSet(lineInfo, idx, linesToShow.length))
             .filter(Boolean);
 
-          if (lyricsContent.length === 0) return null;
+          if (allLyricsSets.length === 0) return null;
 
           return (
             <div
-              key={activeLine?.startTime || "empty"}
+              key={`lyrics-${activeLineIndex}`}
               className={`lyrics-box anim-${settings.animationType}`}
             >
-              {lyricsContent}
+              {allLyricsSets}
             </div>
           );
         };
@@ -1156,9 +1239,8 @@ function FontPicker({
             {filteredFonts.map((font) => (
               <div
                 key={font}
-                className={`font-picker-item ${
-                  value === font ? "selected" : ""
-                }`}
+                className={`font-picker-item ${value === font ? "selected" : ""
+                  }`}
                 style={{ fontFamily: font }}
                 onClick={() => {
                   onChange(font);
@@ -1252,10 +1334,10 @@ function SettingsPanel({
               {tab === "general"
                 ? t.tabGeneral
                 : tab === "display"
-                ? t.tabDisplay
-                : tab === "style"
-                ? t.tabStyle
-                : t.tabAnim}
+                  ? t.tabDisplay
+                  : tab === "style"
+                    ? t.tabStyle
+                    : t.tabAnim}
             </button>
           )
         )}
@@ -1806,6 +1888,20 @@ function SettingsPanel({
             <section className="ios-section">
               <div className="section-header">{t.albumArtSection}</div>
               <div className="ios-list">
+                {/* Show Album Art Toggle */}
+                <label className="ios-item">
+                  <span>{t.showAlbumArt}</span>
+                  <div className="toggle-wrapper">
+                    <input
+                      type="checkbox"
+                      checked={settings.showAlbumArt}
+                      onChange={(e) =>
+                        updateSetting("showAlbumArt", e.target.checked)
+                      }
+                    />
+                    <span className="toggle-slider"></span>
+                  </div>
+                </label>
                 {/* Album Art Size */}
                 <div className="ios-item column">
                   <div className="item-row">
@@ -1845,6 +1941,84 @@ function SettingsPanel({
                     }
                   />
                 </div>
+              </div>
+            </section>
+
+            {/* Lyrics Display Section */}
+            <section className="ios-section">
+              <div className="section-header">{t.lyricsLinesSection}</div>
+              <div className="ios-list">
+                {/* Previous Lines */}
+                <div className="ios-item column">
+                  <div className="item-row">
+                    <span>{t.lyricsPrevLines}</span>
+                    <span className="value-text">
+                      {settings.lyricsPrevLines}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="1"
+                    value={settings.lyricsPrevLines}
+                    onChange={(e) =>
+                      updateSetting("lyricsPrevLines", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+                {/* Next Lines */}
+                <div className="ios-item column">
+                  <div className="item-row">
+                    <span>{t.lyricsNextLines}</span>
+                    <span className="value-text">
+                      {settings.lyricsNextLines}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="1"
+                    value={settings.lyricsNextLines}
+                    onChange={(e) =>
+                      updateSetting("lyricsNextLines", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+                {/* Set Gap */}
+                <div className="ios-item column">
+                  <div className="item-row">
+                    <span>{t.lyricsSetGap}</span>
+                    <span className="value-text">
+                      {settings.lyricsSetGap}px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="32"
+                    step="2"
+                    value={settings.lyricsSetGap}
+                    onChange={(e) =>
+                      updateSetting("lyricsSetGap", parseInt(e.target.value))
+                    }
+                  />
+                </div>
+                {/* Fade Non-Active Lyrics */}
+                <label className="ios-item">
+                  <span>{t.fadeNonActiveLyrics}</span>
+                  <div className="toggle-wrapper">
+                    <input
+                      type="checkbox"
+                      checked={settings.fadeNonActiveLyrics}
+                      onChange={(e) =>
+                        updateSetting("fadeNonActiveLyrics", e.target.checked)
+                      }
+                    />
+                    <span className="toggle-slider"></span>
+                  </div>
+                </label>
               </div>
             </section>
           </>
@@ -2349,9 +2523,9 @@ function SettingsPanel({
                     >
                       {
                         t[
-                          ("anim" +
-                            type.charAt(0).toUpperCase() +
-                            type.slice(1)) as keyof typeof t
+                        ("anim" +
+                          type.charAt(0).toUpperCase() +
+                          type.slice(1)) as keyof typeof t
                         ]
                       }
                     </button>
