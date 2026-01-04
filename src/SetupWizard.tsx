@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { OverlaySettings, defaultSettings } from "./App";
+import { OverlaySettings } from "./App";
 import { presets, PresetInfo, applyPreset } from "./presets";
 import "./SetupWizard.css";
 
