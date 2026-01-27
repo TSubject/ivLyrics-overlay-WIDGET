@@ -28,7 +28,8 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com data:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.github.com https://github.com"
+      "csp": "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com data:; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.github.com https://github.com",
+      "dangerousDisableAssetCspModification": ["style-src"]
     },
     "withGlobalTauri": true,
     "macOSPrivateApi": true
