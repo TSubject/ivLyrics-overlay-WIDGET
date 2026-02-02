@@ -1,0 +1,6 @@
+// MusicWidget Resource File
+#include <windows.h>
+
+// Application Icon
+// IDI_ICON1 is the main application icon
+1 ICON "assets\\app.ico"
